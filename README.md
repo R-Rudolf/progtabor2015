@@ -57,6 +57,15 @@ Ehhez egy kis segítség:
 
 - **getMeasure(name)**
     return measurement of the drone
+    ```
+    example_request = {
+        "action": "getMeasure",
+        "team_name": "test",
+        "secret": "kL4QBbPZRu",
+        "drone": "Baboo"
+    }
+    example_response = "21"
+    ```
 
 - **tick()**
     all drones: turn, accelerate, go ahead
