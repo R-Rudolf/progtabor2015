@@ -115,7 +115,7 @@ Mindenhol ahol szöveg az adattípus idézőjeleket "" használok, mindehol ahol
     ```
 
 - **getScore(map)**
-    Evaluates sended map and original map similarity.
+    Evaluates sent map and original map similarity.
     (Only once per minute can be evaluated per user! --> only during competition)
     Returns Score, which is between 0 and 100, where 100 is the total match.
     The Map is a 2 dimesnional array of integers between 0 and 100, with 512x512 size.
