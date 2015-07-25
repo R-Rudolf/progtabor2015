@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 #from scipy.misc import imread, toimage
 
 from PIL import Image
+import traceback
 
 TIMEOUT = 60*60*2 # Two hours
 
@@ -70,6 +71,48 @@ def limit(value, limit):
 
     return value
 
+def mapChek(map):
+    if len(map) != IMG_WIDTH:
+        print "width: ", len(map)
+        return "!Wrong formatted map: Width problem!"
+
+    if len(map[0]) != IMG_HEIGHT:
+        print "height: ", len(map[0])
+        return "!Wrong formatted map: Height problem!"
+    try:
+        for line in map:
+            for pixel in line:
+                val = int(pixel)
+                if val < 0 or val > 100:
+                    raise ValueError
+    except ValueError:
+        return "!Not valid values in sent map!"
+
+    return "OK"
+
+def score(orig, sent):
+    max_good = 0
+    max_error = 0
+    error = 0
+    good = 0
+
+    for i in range(IMG_HEIGHT):
+        for j in range(IMG_WIDTH):
+            if orig[i][j] == 100:
+                max_good += 1
+                if sent[i][j] == 100:
+                    good += 1
+            else:
+                max_error += 1
+                if sent[i][j] != 0:
+                    error += 1
+    print "good: ", good
+    print "error: ", error
+    print "max error: ", max_error
+    print "max good: ", max_good
+
+    return int(100*(float(good)/max_good - float(error)/max_error))
+
 class Point:
     def limit(self):
         self.x = limit(self.x, IMG_WIDTH) if self.x > 0 else 0
@@ -83,14 +126,15 @@ class Drone:
 
     def loadDrone(self, data_json):
         data = json.loads(data_json)
-        self.x = data.x
-        self.y = data.y
-        self.angle = data.angle
-        self.speed = data.speed
-        self.acc   = data.acc
-        self.turn  = data.turn
-        self.name = data.name
-        self.life = data.life
+        self.x = data["x"]
+        self.y = data["y"]
+        self.angle = data["angle"]
+        self.speed = data["speed"]
+        self.acc   = data["acc"]
+        self.turn  = data["turn"]
+        self.name = data["name"]
+        self.life = data["life"]
+        self.history = data["history"]
 
     def saveDrone(self):
         data = {
@@ -101,11 +145,12 @@ class Drone:
             "angle": self.angle,
             "turn": self.turn,
             "acc": self.acc,
-            "speed": self.speed
+            "speed": self.speed,
+            "history": self.history
         }
         return json.dumps(data)
 
-    def __init__(self, origo=STARTING_POINT, angle=0, name="Nameless"):
+    def __init__(self, origo=STARTING_POINT, angle=0.0, name="Nameless"):
         self.x = origo[0]
         self.y = origo[1]
         self.angle = angle
@@ -114,6 +159,7 @@ class Drone:
         self.turn  = 0
         self.name = name
         self.life = 1
+        self.history = [[self.x, self.y, self.angle]]
 
     def setMovement(self, turn, acc):
         if self.life:
@@ -121,13 +167,15 @@ class Drone:
             self.turn = limit(turn, MAX_TURN)
 
     def crashTest(self, map):
-        point = map[int(self.x)][int(self.y)]
-        return point > 0
+        point = int(map[int(self.x)][int(self.y)])
+        # print "Drone Crashed at: %d ,%d --> %f" % (self.x, self.y, point)
+        return point < 100
 
     def go(self, map):
         self.angle += self.turn
         self.speed += self.acc
         self.speed = limit(self.acc+self.speed, MAX_SPEED)
+        self.speed = 0 if self.speed < 0 else self.speed
 
         self.y += math.cos(self.angle)*self.speed
         self.x += math.sin(self.angle)*self.speed
@@ -136,69 +184,45 @@ class Drone:
             self.life = 0
             self.speed = 0
 
+        self.history.append([self.x, self.y, self.angle])
+
     def drawDrone(self, img_orig, img_measure=None):
         img = img_orig[:]
-        len = 0
+        size = 20
         p = Point(math.floor(self.x), math.floor(self.y))
         p_orig = Point(p.x, p.y)
         img_measure = img_orig if img_measure == None else img_measure
 
-
-        # Horizontal line
-        p.x -= int(len/2)
-        p.limit()
-        for i in range(len):
-            img[int(p.x)][int(p.y)] = 1
-            p.x += 1
-            p.limit()
-
-        # Vertical line
-        p = Point(p_orig.x, p_orig.y)
-        p.y -= int(len/2)
-        p.limit()
-        for i in range(len):
-            img[int(p.x)][int(p.y)] = 1
-            p.y += 1
-            p.limit()
-
         # Orientation
-        p = Point(p_orig.x, p_orig.y)
-        for i in range(int(20)):
+        p.y -= math.cos(self.angle)*int(size/2)
+        p.x -= math.sin(self.angle)*int(size/2)
+        p.limit()
+        for i in range(size):
             img[int(p.x)][int(p.y)] = 1
             p.y += math.cos(self.angle)
             p.x += math.sin(self.angle)
             p.limit()
-        p = Point(p_orig.x, p_orig.y)
-        for i in range(int(20)):
-            img[int(p.x)][int(p.y)] = 1
-            p.y -= math.cos(self.angle)
-            p.x -= math.sin(self.angle)
-            p.limit()
 
         # Orientation
+        size /= 2
         p = Point(p_orig.x, p_orig.y)
-        for i in range(int(10)):
+        p.y -= math.sin(self.angle)*int(size/2)
+        p.x -= math.cos(self.angle)*int(size/2)
+        p.limit()
+        for i in range(size):
             img[int(p.x)][int(p.y)] = 1
-            p.y += math.cos(self.angle+math.pi/2)
-            p.x += math.sin(self.angle+math.pi/2)
-            p.limit()
-        p = Point(p_orig.x, p_orig.y)
-        for i in range(int(10)):
-            img[int(p.x)][int(p.y)] = 1
-            p.y -= math.cos(self.angle+math.pi/2)
-            p.x -= math.sin(self.angle+math.pi/2)
+            p.y += math.sin(self.angle)
+            p.x += math.cos(self.angle)
             p.limit()
 
 
         # Measure
         p = Point(p_orig.x, p_orig.y)
         dist = self.measure(img_measure)
-        print "dist: ", dist
         for i in range(int(dist)):
             img[int(p.x)][int(p.y)] = 0.5
             p.y += math.cos(self.angle)
             p.x += math.sin(self.angle)
-            #p = limit_p(p)
 
         return img
 
@@ -221,7 +245,7 @@ class Drone:
                 break # Out of image
 
             if not check(p, img):
-                print "cave"
+                print "cave wall"
                 break # Cave wall
 
             p = go(p, self.angle)
@@ -229,36 +253,19 @@ class Drone:
         return math.sqrt((p.x-self.x)**2 + (p.y-self.y)**2)
 
 
+# Datas
 """
-request:
-
- - getKey(teamName)
-    returns a secret key, which is needed
-    for the other requests
-
- - initLevel(stage)
-    resets drones, maps, timers, sets map to the given level
-    return a the list of drone names
-
- - getScore(map)
-    evaluates sended map and original map similarity
-    only once per minute can be evaluated per user!
-    returns last evaluated score and time to new access
-
- - tick()
-    all drones: turn, accelerate, go ahead
-    increment clock
-    check Drone crash --> removes from list
-
- - moveDrone(name, acc, angle)
-    returns actual datas (life, cooordinates, angle, acc, speed)
-    if already crashed life is 0
-
- - getMeasure(index)
-    return measurement of the indexed drone
-
+teams = {
+    "team_name1": {
+        "secret" : "dsds",
+        "ts": 155475544.544645,
+        "drones": [drone1, drone2 ],
+        "score_ts": 155445448.545767,
+        "ticks": 0,
+        "level": 1
+    }
+}
 """
-
 
 def getKey_handler(req):
     print "getKey handler triggered!"
@@ -269,23 +276,28 @@ def getKey_handler(req):
         secret += random.choice(SECRET_CHARS)
 
     if teams.has_key(team):
-        print "Team got new key!"
+        print "Team '%s' got new key!" % team
+    else:
+        print "Team '%s' registered!" % team
 
-    print "team name: ", team
-    print "secret key: ", secret
-    teams[team] = {"secret": secret, "ts": time.time()}
+    teams[team] = {
+        "secret": secret,
+        "ts": time.time()
+    }
 
-    answer = {"secret": secret}
+    answer = {
+        "secret": secret
+    }
     return json.dumps(answer)
 
 def initLevel_handler(req):
     try:
         level = int(req["level"])
     except ValueError:
-        return "Level value not a number!"
+        return "!Level value not a number!"
 
     if level != 1:
-        return "Level not yet implemented!"
+        return "!Level not yet implemented!"
 
     drones = []
     names = random.sample(DRONE_NAMES, NUM_OF_DRONES)
@@ -294,41 +306,108 @@ def initLevel_handler(req):
         angle = random.randrange(0, 360)/(math.pi*2)
         drones.append(Drone(STARTING_POINT,
                             angle, names[i]))
+    team = teams[req["team_name"]]
+    team["drones"] = drones
+    team["orig_map"] = CAVE_MAP
+    team["score_ts"] = time.time()
+    team["ticks"] = 0
+    team["level"] = level
+    #teams[req["team_name"]] = team
 
-    teams[req["team_name"]]["drones"] = drones
-    teams[req["team_name"]]["orig_map"] = CAVE_MAP
+    answer = {
+        "drones": names
+    }
+    return json.dumps(answer)
 
-    return json.dumps(names)
-
-def score(orig, sended):
-    max = IMG_WIDTH * IMG_HEIGHT
-    error = 0
-
-    for i in range(IMG_HEIGHT):
-        for j in range(IMG_WIDTH):
-            dev = (orig[i][j] - sended[i][j])
-            error += math.sqrt(dev**2)
-
-    return 100 - 100*(error/max)
-
-def getScore_handle(req):
+def getScore_handler(req):
     map = req["map"]
-    if len(map) != IMG_WIDTH or\
-        len(map) != IMG_WIDTH+1:
-        return "Wrong formatted map!"
+    map_validity = mapChek(map)
 
-    if len(map[0]) != IMG_HEIGHT or\
-        len(map[0]) != IMG_HEIGHT+1:
-        return "Wrong formatted map!"
+    if map_validity != "OK":
+        return map_validity
 
     team = teams[req["team_name"]]
     team["sended_map"] = map
 
-    return score(team["orig_map"], map)
+    answer = {
+        "score": score(CAVE_MAP, map)
+    }
+    return json.dumps(answer)
+    #return "!Action not yet implemented!"
+
+def moveDrone_handler(req):
+    team = teams[req["team_name"]]
+    drone_name = req["drone"]
+
+    drone = None
+    for item in team["drones"]:
+        if item.name == drone_name:
+            drone = item
+    if drone == None:
+        return "!Drone with the given name not found!"
+
+    try:
+        acc = float(req["acceleration"])
+    except ValueError:
+        return "!Not valid acceleration value (float)!"
+
+    try:
+        turn = float(req["turn"])
+    except ValueError:
+        return "!Not valid turn value (float)!"
+
+    drone.setMovement(turn, acc)
+
+    answer = {
+        "life": drone.life,
+        "x": drone.x,
+        "y": drone.y,
+        "angle": drone.angle,
+        "acceleration": drone.acc,
+        "speed": drone.speed
+    }
+
+    return json.dumps(answer)
+
+def getMeasure_handler(req):
+    team = teams[req["team_name"]]
+    drone_name = req["drone"]
+
+    drone = None
+    for item in team["drones"]:
+        if item.name == drone_name:
+            drone = item
+    if drone == None:
+        return "!Drone with the given name not found!"
+
+    measure = drone.measure(CAVE_MAP)
+    answer = {
+        "result": measure
+    }
+
+    return json.dumps(answer)
+
+def tick_handler(req):
+    team = teams[req["team_name"]]
+
+    for drone in team["drones"]:
+        if drone.life is 1:
+            drone.go(CAVE_MAP)
+
+    team["ticks"] += 1
+
+    answer = {
+        "ticks": team["ticks"]
+    }
+    return json.dumps(answer)
 
 handlers = {
     "getKey": getKey_handler,
-    "initLevel": initLevel_handler
+    "initLevel": initLevel_handler,
+    "moveDrone": moveDrone_handler,
+    "getMeasure": getMeasure_handler,
+    "tick": tick_handler,
+    "getScore": getScore_handler
 }
 
 def processRequest(req_msg):
@@ -338,40 +417,41 @@ def processRequest(req_msg):
     try:
         req = json.loads(req_msg)
     except:
-        return "Json formatting error!"
+        return "!Json formatting error!"
 
     if not req.has_key("action"):
-        return "No action field!"
+        return "!No action field!"
     if not req.has_key("team_name"):
-        return "No team_name field!"
+        return "!No team_name field!"
 
     action = req["action"]
 
     if not handlers.has_key(action):
-        return "Not valid action!"
+        return "!Not valid action!"
 
     if action != "getKey":
         team = req["team_name"]
         if team not in teams.keys():
-            return "Not registered team!"
+            return "!Not registered team!"
         if req["secret"] != teams[team]["secret"]:
-            return "Secret not valid!"
+            return "!Secret not valid!"
         teams[team]["ts"] = time.time()
 
-    #try:
-    answer = handlers[action](req)
-    #except:
-    #    return "Something went wrong executing the action."
+    try:
+        answer = handlers[action](req)
+    except:
+        print "Error:"
+        traceback.print_exc()
+        return "!Something went wrong executing the action."
 
     return answer
 
 
 def main():
-
     global  CAVE_MAP
 
     CAVE_MAP = loadImage("cave-system.png")
-
+    """
     d = Drone(STARTING_POINT, 0)
     cave_draw = CAVE_MAP[:]
 
@@ -386,18 +466,20 @@ def main():
     saveImage(cave_draw, "draw_route.png")
 
     exit()
-
+    """
     print "Start ZMQ response server."
 
     context = zmq.Context()
     socket = context.socket(zmq.REP)
-    socket.bind("tcp://*:5556")
+    socket.bind("tcp://*:5555")
 
     while True:
         #  Wait for next request from client
         print "Waiting for next request..."
         message = socket.recv()
-        print "Request: ", message
+        max = len(message)
+        max = 150 if max > 150 else max
+        print "Request: ", message[:max]
 
         answer = processRequest(message)
 
