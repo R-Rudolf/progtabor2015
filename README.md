@@ -17,8 +17,9 @@ A parancsok kiadása és a válaszok értelemzése a JSON adatstruktúra segíts
 Ehhez egy kis segítség:
 
  - **C# esetén:**
-  - Szintén a nugettel kell telepíteni a JSON könyvtárat.
-  - Segédminta: [link](https://gist.github.com/R-Rudolf/64cbf83f899c20ca20bb)
+  - Szintén a nugettel kell telepíteni a **newtonsoft JSON** könyvtárat.
+  - Ehhez segítség a következő honlapokon található: [link](http://www.newtonsoft.com/json/help/html/SerializingJSON.htm)
+  - (A korábban ajánlott JSON könyvtárhoz a segédkód: [link](https://gist.github.com/R-Rudolf/64cbf83f899c20ca20bb) )
 
 ##Kérések és Válaszok a szerverrel:
 
@@ -53,9 +54,31 @@ Ehhez egy kis segítség:
     }
     ```
 
-- **moveDrone(name, acc, angle)**
-    returns actual datas (life, cooordinates, angle, acc, speed)
-    if already crashed life is 0
+- **moveDrone(name, acc, turn)**
+    Return actual datas (life, cooordinates, angle, acc, speed)
+    Turn is in **radians**!
+    Maximum speed is: **10** (pixel per tick)
+    Acceleration is between: **1** and **-1** (pixel per tick^2)
+    Turn is between: **+- 10*pi/180** (radian per tick)
+    If crashed life is 0
+    ```
+    example_request = {
+        "action": "moveDrone",
+        "team_name": "test",
+        "secret": "kL4QBbPZRu",
+        "drone": "Baboo",
+        "acceleration": 0.3,
+        "turn ": 0.45
+    }
+    example_response = {
+        "life": 1,
+        "x": 256,
+        "y": 195,
+        "angle": 2.67,
+        "acceleration": -0.3
+        "speed": 4.7
+    }
+    ```
 
 - **getMeasure(name)**
     return measurement of the drone
