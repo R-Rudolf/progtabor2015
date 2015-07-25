@@ -11,24 +11,24 @@ Kérésekre adott válasz:
  - getKey(teamName)
     returns a secret key, which is needed
     for the other requests
-    example_request = {
+    <pre><code>example_request = {
         "action": "getKey",
         "team_name": "test"
     }
     example_response = {
         "secret": "kL4QBbPZRu"
-    }
+    }</code></pre>
 
  - initLevel(level)
     resets drones, maps, timers, sets map to the given level
     return a the list of drone names
-    example_request = {
+    <pre><code>example_request = {
         "action": "initLevel",
         "team_name": "test",
         "secret": "kL4QBbPZRu",
         "level": 1
     }
-    example_response = ["Muffin", "Baboo", "Prince_Charming"]
+    example_response = ["Muffin", "Baboo", "Prince_Charming"]</code></pre>
 
  - moveDrone(name, acc, angle)
     returns actual datas (life, cooordinates, angle, acc, speed)
