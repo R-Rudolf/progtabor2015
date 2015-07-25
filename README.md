@@ -26,7 +26,7 @@ Ehhez egy kis segítség:
 
 ##Kérések és Válaszok a szerverrel:
 
-Mindenhol ahol szöveg az adattípus idézőjeleket "" használok, mindehol ahol egész szám van számokat írok, lebegőpontos adattpíúosoknál pedig tizedestörteket is írok a példákba.
+Mindenhol ahol szöveg az adattípus idézőjeleket "" használok, mindehol ahol egész szám van számokat írok, lebegőpontos adattípúosoknál pedig tizedestörteket írok a példákban.
 
 
 - **Handshake**
