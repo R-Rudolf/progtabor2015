@@ -101,11 +101,32 @@ Mindenhol ahol szöveg az adattípus idézőjeleket "" használok, mindehol ahol
     ```
 
 - **tick()**
-    all drones: turn, accelerate, go ahead
-    increment clock
-    check Drone crash --> no measurements will be sent
+    Drones alive: *turn, accelerate, go ahead*
+    Increment and return tick.
+    ```
+    example_request = {
+        "action": "tick",
+        "team_name": "test",
+        "secret": "kL4QBbPZRu"
+    }
+    example_response = {
+        "tick": 14
+    }
+    ```
 
 - **getScore(map)**
-    evaluates sended map and original map similarity
-    only once per minute can be evaluated per user!
-    returns last evaluated score and time to new access
+    Evaluates sended map and original map similarity.
+    (Only once per minute can be evaluated per user! --> only during competition)
+    Returns Score, which is between 0 and 100, where 100 is the total match.
+    The Map is a 2 dimesnional array of floating point number between 0 and 1, with 512x512 size.
+    ```
+    example_request = {
+        "action": "getScore",
+        "team_name": "test",
+        "secret": "kL4QBbPZRu",
+        "map": [[0, 0, 0.1, 0, 1, 0.3, 0.333, 0 ...], [0, 1, 1, ... 1, 0], [...] ... []]
+    }
+    example_response = {
+        "score": 14
+    }
+    ```
