@@ -48,7 +48,9 @@ Ehhez egy kis segítség:
         "secret": "kL4QBbPZRu",
         "level": 1
     }
-    example_response = ["Muffin", "Baboo", "Prince_Charming"]
+    example_response = {
+        "drones": ["Muffin", "Baboo", "Prince_Charming"]
+    }
     ```
 
 - **moveDrone(name, acc, angle)**
