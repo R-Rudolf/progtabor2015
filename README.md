@@ -10,8 +10,15 @@ A Request-Response eljárást használjuk.
 A használathoz telepítened kell a használt programozási nyelvnek megfelelő függvénykönyvtárat.
 
  - **C# esetén:**
-    - A Visual Studioban telepítsd a nuget csomagtelepítővel a netMQ csomagot.
-    - A többi teendő elvileg érthetővé válik a következő script elemzésével: [link](https://gist.github.com/R-Rudolf/ddb0c68b30cf59820164)
+  - A Visual Studioban telepítsd a nuget csomagtelepítővel a netMQ csomagot.
+  - A többi teendő elvileg érthetővé válik a következő script elemzésével: [link](https://gist.github.com/R-Rudolf/ddb0c68b30cf59820164)
+
+A parancsok kiadása és a válaszok értelemzése a JSON adatstruktúra segítségével történik.
+Ehhez egy kis segítség:
+
+ - **C# esetén:**
+  - Szintén a nugettel kell telepíteni a JSON könyvtárat.
+  - Segédminta: [link](https://gist.github.com/R-Rudolf/64cbf83f899c20ca20bb)
 
 ##Kérések és Válaszok a szerverrel:
 
