@@ -118,7 +118,7 @@ Mindenhol ahol szöveg az adattípus idézőjeleket "" használok, mindehol ahol
     Evaluates sended map and original map similarity.
     (Only once per minute can be evaluated per user! --> only during competition)
     Returns Score, which is between 0 and 100, where 100 is the total match.
-    The Map is a 2 dimesnional array of floating point number between 0 and 1, with 512x512 size.
+    The Map is a 2 dimesnional array of integers between 0 and 100, with 512x512 size.
     ```
     example_request = {
         "action": "getScore",
