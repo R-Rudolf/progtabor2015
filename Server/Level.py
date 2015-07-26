@@ -8,7 +8,7 @@ MAX_PIXEL_VALUE = 255
 
 
 def loadImage(filename):
-    img = Image.open("levels/"+filename)
+    img = Image.open("../levels/"+filename)
     image_array =  list(img.getdata())
     image = []
 

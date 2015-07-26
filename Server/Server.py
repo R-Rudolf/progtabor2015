@@ -1,27 +1,82 @@
 __author__ = 'Rudolf'
 
 import time
-import zmq
 import json
 import math
 import random
+import traceback
+import os
+import zmq
 import matplotlib.pyplot as plt
 from PIL import Image
-import traceback
+
 from Drone import Drone
 from Level import Level
-import os
 
 
 TIMEOUT = 60*60*2 # Two hours
-
 MAX_PIXEL_VALUE = 255
-
 SECRET_LEN = 10
 SECRET_CHARS = "QWERTYUPASDFGHJKLMNBVCXZqwertyuiopasdfghjkzxcvbnm123456789"
+FINISHED_LEVELS = [1]
+
 teams = {}
 
-FINISHED_LEVELS = [1]
+def main():
+    print "Start ZMQ response server."
+    context = zmq.Context()
+    socket = context.socket(zmq.REP)
+    socket.bind("tcp://*:5555")
+
+    while True:
+        print "Waiting for next request..."
+        message = socket.recv()
+        max = len(message)
+        max = 150 if max > 150 else max
+        print "Request: ", message[:max]
+
+        answer = processRequest(message)
+
+        socket.send(answer)
+        print "\tResponse: ", answer
+
+
+def processRequest(req_msg):
+    if req_msg == b"Hello":
+        return b"World!"
+
+    try:
+        req = json.loads(req_msg)
+    except:
+        return "!Json formatting error!"
+
+    if not req.has_key("action"):
+        return "!No action field!"
+    if not req.has_key("team_name"):
+        return "!No team_name field!"
+
+    action = req["action"]
+
+    if not handlers.has_key(action):
+        return "!Not valid action!"
+
+    if action != "getKey":
+        team = req["team_name"]
+        if team not in teams.keys():
+            return "!Not registered team!"
+        if req["secret"] != teams[team]["secret"]:
+            return "!Secret not valid!"
+        teams[team]["ts"] = time.time()
+
+    try:
+        answer = handlers[action](req)
+    except:
+        print "Error:"
+        traceback.print_exc()
+        return "!Something went wrong executing the action."
+
+    return answer
+
 
 def show(m):
     plt.imshow(m)
@@ -119,7 +174,7 @@ def initLevel_handler(req):
     except ValueError:
         return "!Level value not a number!"
 
-    lvl_filename = 'levels/level_%d.json'%(level_index)
+    lvl_filename = '../levels/level_%d.json'%(level_index)
     if os.path.exists(lvl_filename) and \
         level_index in FINISHED_LEVELS:
             level = Level(lvl_filename)
@@ -136,7 +191,6 @@ def initLevel_handler(req):
 
     team = teams[req["team_name"]]
     team["drones"] = drones
-    team["orig_map"] = CAVE_MAP
     team["score_ts"] = time.time()
     team["ticks"] = 0
     team["level"] = level
@@ -237,84 +291,6 @@ handlers = {
     "tick": tick_handler,
     "getScore": getScore_handler
 }
-
-def processRequest(req_msg):
-    if req_msg == b"Hello":
-        return b"World!"
-
-    try:
-        req = json.loads(req_msg)
-    except:
-        return "!Json formatting error!"
-
-    if not req.has_key("action"):
-        return "!No action field!"
-    if not req.has_key("team_name"):
-        return "!No team_name field!"
-
-    action = req["action"]
-
-    if not handlers.has_key(action):
-        return "!Not valid action!"
-
-    if action != "getKey":
-        team = req["team_name"]
-        if team not in teams.keys():
-            return "!Not registered team!"
-        if req["secret"] != teams[team]["secret"]:
-            return "!Secret not valid!"
-        teams[team]["ts"] = time.time()
-
-    try:
-        answer = handlers[action](req)
-    except:
-        print "Error:"
-        traceback.print_exc()
-        return "!Something went wrong executing the action."
-
-    return answer
-
-
-def main():
-    global  CAVE_MAP
-
-    CAVE_MAP = loadImage("cave-system.png")
-    """
-    d = Drone(STARTING_POINT, 0)
-    cave_draw = CAVE_MAP[:]
-
-    for i in range(30):
-        cave_draw = d.drawDrone(cave_draw, CAVE_MAP)
-        d.setMovement(5*(math.pi/180), 5)
-        d.go(CAVE_MAP)
-
-    cave_draw = d.drawDrone(cave_draw, CAVE_MAP)
-
-    show(cave_draw)
-    saveImage(cave_draw, "draw_route.png")
-
-    exit()
-    """
-    print "Start ZMQ response server."
-
-    context = zmq.Context()
-    socket = context.socket(zmq.REP)
-    socket.bind("tcp://*:5555")
-
-    while True:
-        #  Wait for next request from client
-        print "Waiting for next request..."
-        message = socket.recv()
-        max = len(message)
-        max = 150 if max > 150 else max
-        print "Request: ", message[:max]
-
-        answer = processRequest(message)
-
-        #  Send reply back to client
-        socket.send(answer)
-        print "\tResponse: ", answer
-
 
 DRONE_NAMES = [
     "Lucky",

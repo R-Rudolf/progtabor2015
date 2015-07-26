@@ -118,7 +118,7 @@ def testing():
     turn = 5*math.pi/180
     acc = 0.0
 
-    img_orig = loadImage("cave-system.png")
+    img_orig = loadImage("../../levels/level_1.png")
     img = []
     for i in range(512):
         line = []
