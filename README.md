@@ -124,7 +124,7 @@ Mindenhol ahol szöveg az adattípus idézőjeleket "" használok, mindehol ahol
         "action": "getScore",
         "team_name": "test",
         "secret": "kL4QBbPZRu",
-        "map": [[0, 0, 0.1, 0, 1, 0.3, 0.333, 0 ...], [0, 1, 1, ... 1, 0], [...] ... []]
+        "map": [[0, 0, 12, 0, 1, 33, 45, 0 ...], [0, 100, 100, ... 100, 0], [...] ... []]
     }
     example_response = {
         "score": 14
