@@ -1,0 +1,10 @@
+{
+  "map": "level_1.png",
+  "img_width": 512,
+  "img_height": 512,
+  "max_turn": 0.174532925199,
+  "max_acc": 1,
+  "max_speed": 10,
+  "number_of_drones": 3,
+  "starting_point": [256, 256]
+}
