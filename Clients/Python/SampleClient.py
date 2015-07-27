@@ -141,7 +141,7 @@ def testing():
             img = drawDrone(drone_status, img, img_orig)
         print "tick: ", tick()
 
-    print "Score: ", getScore(img)
+    # print "Score: ", getScore(img)
 
     show(img)
 

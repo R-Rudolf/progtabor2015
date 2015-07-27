@@ -65,7 +65,7 @@ class MapDrawer:
                 print "Map generated for team: ", team
         if map == None:
             print "Map not found for team: ", team
-            map = [[int(MAX_PIXEL_VALUE/2) for x in range(512)] for x in range(512)]
+            map = [[50 for j in range(512)] for i in range(512)]
 
         return getImageStream(map)
 
@@ -81,7 +81,14 @@ class Team:
     def GET(self, team_name):
         render = web.template.frender(path('team.html'))
         if WebServer.teams.has_key(team_name):
-            score = WebServer.teams[team_name]["score"]
+            if WebServer.teams[team_name].has_key("score"):
+                score = WebServer.teams[team_name]["score"]
+            else:
+                score = {
+                    "all": "Map not sent --> Score not evaluated!",
+                    "good": 0,
+                    "bad": 0
+                }
             return render(team_name, score)
         else:
             return "Team not registered!"
