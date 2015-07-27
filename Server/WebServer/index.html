@@ -1,3 +1,4 @@
+$def with (teams)
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <html>
@@ -5,6 +6,10 @@
 
 <h1>Barlang szkennelo dronok</h1>
 
+<ul>
+    $for team in teams:
+        <li><a href="team/$team">Csapat: $team</a></li>
+</ul>
 
 </body>
 </html>

@@ -1,12 +1,14 @@
-$def with (name)
+$def with (name, score)
 
 <html>
 <head>
     <title>Team page</title>
 </head>
 <body>
-
-Welcome $name team!
+<h1>Welcome $name team!</h1>
+<h3>Last score: $score</h3>
+<h3>Last sent map:</h3>
+<img src="../map/$name" alt="Last sended map from team" height="512" width="512">
 <script src="../team.js"></script>
 </body>
 </html>
