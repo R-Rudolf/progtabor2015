@@ -2,13 +2,14 @@ import web
 from PIL import Image
 from cStringIO import StringIO
 import os
+import threading
 
 MAX_PIXEL_VALUE = 255
 
 urls = (
-    '/', 'index',
+    '/', 'Index',
     '/(.*).js', 'JavaScript',
-    '/team/(.*)', 'team',
+    '/team/(.*)', 'Team',
     '/map/(.*)', 'MapDrawer'
 )
 
@@ -50,11 +51,21 @@ def getImageStream(map):
     img_io.seek(0)
     return img_io
 
+
 class MapDrawer:
     def GET(self, team):
 
         web.header('Content-type','image/png')
-        map = loadImage(path("level_1.png"))
+        web.header("Cache-Control", "no-cache")
+        #map = loadImage(path("level_1.png"))
+        map = None
+        if WebServer.teams.has_key(team):
+            if WebServer.teams[team].has_key("sended_map"):
+                map = WebServer.teams[team]["sended_map"]
+                print "Map generated for team: ", team
+        if map == None:
+            print "Map not found for team: ", team
+            map = [[int(MAX_PIXEL_VALUE/2) for x in range(512)] for x in range(512)]
 
         return getImageStream(map)
 
@@ -66,18 +77,38 @@ class JavaScript:
         return read_data
 
 
-class team:
+class Team:
     def GET(self, team_name):
-        filename = os.path.join(os.path.dirname(__file__), 'team.html')
-        render = web.template.frender(filename)
+        render = web.template.frender(path('team.html'))
+        if WebServer.teams.has_key(team_name):
+            score = WebServer.teams[team_name]["score"]
         return render(team_name)
 
 
-class index:
+class Index:
     def GET(self):
-        return "Hello, world!"
+        render = web.template.frender(path('index.html'))
+        return render(WebServer.teams.keys())
 
+class WebServer(threading.Thread):
+
+    teams = {}
+
+    def __init__(self, teams, group=None, target=None, name=None,
+                 args=(), kwargs=None, verbose=None):
+        threading.Thread.__init__(self, group=group, target=target, name=name,
+                                  verbose=verbose)
+        WebServer.teams = teams
+        self.app = web.application(urls, globals())
+
+    def run(self):
+        print "Starting webserver"
+        self.app.run()
+
+    def stop(self):
+        print "Webserver stopped"
+        self.app.stop()
 
 if __name__ == "__main__":
-    app = web.application(urls, globals())
-    app.run()
+    app = WebServer()
+    app.start()

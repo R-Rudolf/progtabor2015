@@ -6,12 +6,16 @@ import math
 import random
 import traceback
 import os
+import sys
 import zmq
 import matplotlib.pyplot as plt
 from PIL import Image
+import threading
 
 from Drone import Drone
 from Level import Level
+sys.path.append("Webserver/")
+from WebServer import WebServer
 
 
 TIMEOUT = 60*60*2 # Two hours
@@ -23,6 +27,9 @@ FINISHED_LEVELS = [1]
 teams = {}
 
 def main():
+    web_server = WebServer(teams)
+    web_server.start()
+
     print "Start ZMQ response server."
     context = zmq.Context()
     socket = context.socket(zmq.REP)
@@ -40,6 +47,7 @@ def main():
         socket.send(answer)
         print "\tResponse: ", answer
 
+    web_server.stop()
 
 def processRequest(req_msg):
     if req_msg == b"Hello":
