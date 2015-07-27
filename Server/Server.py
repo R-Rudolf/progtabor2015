@@ -223,7 +223,7 @@ def getScore_handler(req):
     team["score"] = score
 
     answer = {
-        "score": score
+        "score": score["all"]
     }
     return json.dumps(answer)
 

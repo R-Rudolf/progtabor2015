@@ -202,7 +202,7 @@ def getKey():
 
     req = {
         "action": "getKey",
-        "team_name": "test"
+        "team_name": team_name
     }
     socket.send(json.dumps(req))
     answer = json.loads(socket.recv())

@@ -61,5 +61,10 @@ class Level:
         print "error: ", error
         print "max error: ", max_error
         print "max good: ", max_good
+        score = {
+            "all": int(100*(float(good)/max_good - float(error)/max_error)),
+            "good": good,
+            "bad": error
+        }
 
-        return int(100*(float(good)/max_good - float(error)/max_error))
+        return score
