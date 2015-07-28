@@ -14,7 +14,7 @@ import threading
 
 from Drone import Drone
 from Level import Level
-sys.path.append("Webserver/")
+sys.path.append("WebServer/")
 from WebServer import WebServer
 
 
